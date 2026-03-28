@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercari Brand Wishlist</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        h1 { margin-bottom: 30px; }
+        h2 { margin-top: 40px; margin-bottom: 20px; }
+
+        /* Brand Grid */
+        .brand-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .brand-btn {
+            display: block;
+            padding: 15px 20px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            color: #333;
+            text-decoration: none;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .brand-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            background: #ff5252;
+            color: white;
+        }
+
+        /* Wishlist Section */
+        .wishlist-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .wishlist-section h2 {
+            color: #333;
+            text-shadow: none;
+            margin-top: 0;
+        }
+
+        /* Add Form */
+        .add-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .add-form input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .add-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .add-form button {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .add-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .add-form button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .refetch-all-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%) !important;
+        }
+        .refetch-all-btn:hover {
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4) !important;
+        }
+
+        /* Wishlist Table */
+        .wishlist-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .wishlist-table th {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #ddd;
+        }
+        .wishlist-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        .wishlist-table tr:hover {
+            background: #f9f9f9;
+        }
+        .wishlist-table .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .wishlist-table .product-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .wishlist-table .product-link:hover {
+            text-decoration: underline;
+        }
+        .wishlist-table .price {
+            font-weight: 600;
+            color: #ff5252;
+        }
+        .wishlist-table .brand {
+            color: #666;
+            font-size: 13px;
+        }
+        .wishlist-table .error-row {
+            background: #fff5f5;
+        }
+        .wishlist-table .error-text {
+            color: #ff5252;
+            font-size: 12px;
+        }
+
+        /* Desire Price Input */
+        .desire-price-input {
+            width: 100px;
+            padding: 6px 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 13px;
+            text-align: right;
+            transition: border-color 0.3s;
+        }
+        .desire-price-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .desire-price-input.saved {
+            border-color: #4CAF50;
+            background: #f0fff0;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: all 0.2s;
+        }
+        .refetch-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        .refetch-btn:hover {
+            background: #45a049;
+        }
+        .delete-btn {
+            background: #ff5252;
+            color: white;
+        }
+        .delete-btn:hover {
+            background: #ff3333;
+        }
+        .copy-btn {
+            background: #2196F3;
+            color: white;
+        }
+        .copy-btn:hover {
+            background: #1976D2;
+        }
+        .copy-btn.copied {
+            background: #4CAF50;
+        }
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #333;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast.error {
+            background: #ff5252;
+        }
+        .toast.success {
+            background: #4CAF50;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #666;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover {
+            color: #667eea;
+        }
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Platform Toggle */
+        .platform-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .platform-btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .platform-btn.mercari {
+            background: white;
+            color: #ff5252;
+        }
+        .platform-btn.mercari:hover, .platform-btn.mercari.active {
+            background: #ff5252;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(255,82,82,0.4);
+        }
+        .platform-btn.yahoo {
+            background: white;
+            color: #ff0033;
+        }
+        .platform-btn.yahoo:hover, .platform-btn.yahoo.active {
+            background: #ff0033;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(255,0,51,0.4);
+        }
+        .brand-grid-container {
+            display: none;
+        }
+        .brand-grid-container.active {
+            display: block;
+        }
+        .buy-btn {
+            background: #FF9800;
+            color: white;
+        }
+        .buy-btn:hover {
+            background: #F57C00;
+        }
+        .unbuy-btn {
+            background: #9E9E9E;
+            color: white;
+        }
+        .unbuy-btn:hover {
+            background: #757575;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Brand Wishlist</h1>
+
+        <div class="platform-toggle">
+            <button class="platform-btn mercari active" onclick="switchPlatform('mercari')">Mercari</button>
+            <button class="platform-btn yahoo" onclick="switchPlatform('yahoo')">Yahoo Auction</button>
+        </div>
+
+        <div id="mercari-brands" class="brand-grid-container active">
+            <div class="brand-grid">
+                {% for name, id in brands.items() %}
+                <a href="https://jp.mercari.com/en/search?brand_id={{ id }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="brand-btn">
+                    {{ name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="yahoo-brands" class="brand-grid-container">
+            <div class="brand-grid">
+                {% for name, id in brands_yahoo.items() %}
+                <a href="https://auctions.yahoo.co.jp/category/list/23000/?brand_id={{ id }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="brand-btn">
+                    {{ name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="wishlist-section">
+            <h2>My Products</h2>
+
+            <div class="add-form">
+                <input type="text" id="productUrl" placeholder="Paste Mercari product URL here...">
+                <button id="addBtn" onclick="addProduct()">Add Product</button>
+                <button id="refetchAllBtn" class="refetch-all-btn" onclick="refetchAll()">Refetch All</button>
+            </div>
+
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('wishlist')">Wishlist</button>
+                <button class="tab-btn" onclick="switchTab('bought')">Bought</button>
+            </div>
+
+            <div id="wishlist-tab" class="tab-content active">
+            <table class="wishlist-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product</th>
+                        <th>Brand</th>
+                        <th>Price</th>
+                        <th>Desire Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="wishlistBody">
+                    {% if wishlist %}
+                        {% for item in wishlist %}
+                        {% if not item.get('bought', False) %}
+                        <tr id="row-{{ item.id }}" class="{{ 'error-row' if item.error }}">
+                            <td>
+                                {% if item.image %}
+                                <img src="{{ item.image }}" alt="{{ item.name }}" class="product-image">
+                                {% else %}
+                                <div style="width:60px;height:60px;background:#eee;border-radius:8px;"></div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ item.url }}" target="_blank" class="product-link">{{ item.name }}</a>
+                                {% if item.error %}
+                                <div class="error-text">Error: {{ item.error }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="brand">{{ item.brand }}</td>
+                            <td class="price">{{ item.price }}</td>
+                            <td>
+                                <input type="text"
+                                       class="desire-price-input"
+                                       value="{{ item.desire_price or '' }}"
+                                       placeholder="¥0"
+                                       data-id="{{ item.id }}"
+                                       onchange="saveDesirePrice('{{ item.id }}', this)">
+                            </td>
+                            <td>
+                                <button class="action-btn copy-btn" onclick="copyLink('{{ item.url }}', this)">Copy</button>
+                                <button class="action-btn buy-btn" onclick="markAsBought('{{ item.id }}', this)">Buy</button>
+                                <button class="action-btn refetch-btn" onclick="refetchProduct('{{ item.id }}', this)">Refetch</button>
+                                <button class="action-btn delete-btn" onclick="deleteProduct('{{ item.id }}')">Delete</button>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+            {% set wishlist_count = wishlist|selectattr('bought', 'false')|list|length if wishlist else 0 %}
+            {% if wishlist_count == 0 %}
+            <div class="empty-state" id="wishlistEmpty">No products in wishlist. Add one above!</div>
+            {% endif %}
+            </div>
+
+            <div id="bought-tab" class="tab-content">
+            <table class="wishlist-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product</th>
+                        <th>Brand</th>
+                        <th>Price</th>
+                        <th>Desire Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="boughtBody">
+                    {% if wishlist %}
+                        {% for item in wishlist %}
+                        {% if item.get('bought', False) %}
+                        <tr id="row-{{ item.id }}" class="{{ 'error-row' if item.error }}">
+                            <td>
+                                {% if item.image %}
+                                <img src="{{ item.image }}" alt="{{ item.name }}" class="product-image">
+                                {% else %}
+                                <div style="width:60px;height:60px;background:#eee;border-radius:8px;"></div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ item.url }}" target="_blank" class="product-link">{{ item.name }}</a>
+                                {% if item.error %}
+                                <div class="error-text">Error: {{ item.error }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="brand">{{ item.brand }}</td>
+                            <td class="price">{{ item.price }}</td>
+                            <td>
+                                <input type="text"
+                                       class="desire-price-input"
+                                       value="{{ item.desire_price or '' }}"
+                                       placeholder="¥0"
+                                       data-id="{{ item.id }}"
+                                       onchange="saveDesirePrice('{{ item.id }}', this)">
+                            </td>
+                            <td>
+                                <button class="action-btn copy-btn" onclick="copyLink('{{ item.url }}', this)">Copy</button>
+                                <button class="action-btn unbuy-btn" onclick="markAsUnbought('{{ item.id }}', this)">Move to Wishlist</button>
+                                <button class="action-btn delete-btn" onclick="deleteProduct('{{ item.id }}')">Delete</button>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+            {% set bought_count = wishlist|selectattr('bought', 'true')|list|length if wishlist else 0 %}
+            {% if bought_count == 0 %}
+            <div class="empty-state" id="boughtEmpty">No bought products yet!</div>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        function copyLink(url, btn) {
+            navigator.clipboard.writeText(url).then(() => {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 1500);
+            }).catch(() => {
+                showToast('Failed to copy', 'error');
+            });
+        }
+
+        async function addProduct() {
+            const input = document.getElementById('productUrl');
+            const btn = document.getElementById('addBtn');
+            const url = input.value.trim();
+
+            if (!url) {
+                showToast('Please enter a URL', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>';
+
+            try {
+                const response = await fetch('/api/wishlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Product added!', 'success');
+                    input.value = '';
+                    // Add new row to wishlist
+                    addRowToWishlist(data.item);
+                    // Update empty states
+                    updateEmptyStates();
+                } else {
+                    showToast(data.error || 'Failed to add product', 'error');
+                }
+            } catch (e) {
+                showToast('Network error', 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Add Product';
+        }
+
+        async function refetchProduct(id, btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>';
+
+            try {
+                const response = await fetch(`/api/wishlist/${id}/refetch`, { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Product updated!', 'success');
+                    updateRow(data.item);
+                } else {
+                    showToast(data.error || 'Failed to refetch', 'error');
+                }
+            } catch (e) {
+                showToast('Network error', 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Refetch';
+        }
+
+        async function refetchAll() {
+            const btn = document.getElementById('refetchAllBtn');
+            const rows = document.querySelectorAll('#wishlistBody tr[id^="row-"]');
+
+            if (rows.length === 0) {
+                showToast('No products to refetch', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Refetching...';
+
+            let success = 0;
+            let failed = 0;
+
+            for (const row of rows) {
+                const id = row.id.replace('row-', '');
+                try {
+                    const response = await fetch(`/api/wishlist/${id}/refetch`, { method: 'POST' });
+                    const data = await response.json();
+                    if (data.success) {
+                        updateRow(data.item);
+                        success++;
+                    } else {
+                        failed++;
+                    }
+                } catch (e) {
+                    failed++;
+                }
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Refetch All';
+
+            if (failed === 0) {
+                showToast(`Updated ${success} products!`, 'success');
+            } else {
+                showToast(`Updated ${success}, failed ${failed}`, 'error');
+            }
+        }
+
+        function updateRow(item) {
+            const row = document.getElementById('row-' + item.id);
+            if (!row) return;
+
+            row.className = item.error ? 'error-row' : '';
+
+            // Check if item is bought or in wishlist to determine which buttons to show
+            const isBought = item.bought || false;
+            const actionButtons = isBought ? `
+                <button class="action-btn copy-btn" onclick="copyLink('${item.url}', this)">Copy</button>
+                <button class="action-btn unbuy-btn" onclick="markAsUnbought('${item.id}', this)">Move to Wishlist</button>
+                <button class="action-btn delete-btn" onclick="deleteProduct('${item.id}')">Delete</button>
+            ` : `
+                <button class="action-btn copy-btn" onclick="copyLink('${item.url}', this)">Copy</button>
+                <button class="action-btn buy-btn" onclick="markAsBought('${item.id}', this)">Buy</button>
+                <button class="action-btn refetch-btn" onclick="refetchProduct('${item.id}', this)">Refetch</button>
+                <button class="action-btn delete-btn" onclick="deleteProduct('${item.id}')">Delete</button>
+            `;
+
+            row.innerHTML = `
+                <td>
+                    ${item.image ? `<img src="${item.image}" alt="${item.name}" class="product-image">` : '<div style="width:60px;height:60px;background:#eee;border-radius:8px;"></div>'}
+                </td>
+                <td>
+                    <a href="${item.url}" target="_blank" class="product-link">${item.name}</a>
+                    ${item.error ? `<div class="error-text">Error: ${item.error}</div>` : ''}
+                </td>
+                <td class="brand">${item.brand}</td>
+                <td class="price">${item.price}</td>
+                <td>
+                    <input type="text"
+                           class="desire-price-input"
+                           value="${item.desire_price || ''}"
+                           placeholder="¥0"
+                           data-id="${item.id}"
+                           onchange="saveDesirePrice('${item.id}', this)">
+                </td>
+                <td>
+                    ${actionButtons}
+                </td>
+            `;
+        }
+
+        async function saveDesirePrice(id, input) {
+            const desire_price = input.value.trim();
+
+            try {
+                const response = await fetch(`/api/wishlist/${id}/desire-price`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ desire_price })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    input.classList.add('saved');
+                    setTimeout(() => input.classList.remove('saved'), 1500);
+                } else {
+                    showToast(data.error || 'Failed to save', 'error');
+                }
+            } catch (e) {
+                showToast('Network error', 'error');
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('Remove this product?')) return;
+
+            try {
+                const response = await fetch(`/api/wishlist/${id}`, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Product removed!', 'success');
+                    document.getElementById('row-' + id).remove();
+                    // Update empty states
+                    updateEmptyStates();
+                } else {
+                    showToast(data.error || 'Failed to delete', 'error');
+                }
+            } catch (e) {
+                showToast('Network error', 'error');
+            }
+        }
+
+        // Allow Enter key to add product
+        document.getElementById('productUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addProduct();
+        });
+
+        // Platform switching (Mercari vs Yahoo Auction)
+        function switchPlatform(platform) {
+            // Update platform buttons
+            document.querySelectorAll('.platform-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.platform-btn.' + platform).classList.add('active');
+
+            // Update brand grids
+            document.querySelectorAll('.brand-grid-container').forEach(grid => grid.classList.remove('active'));
+            document.getElementById(platform + '-brands').classList.add('active');
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab + '-tab').classList.add('active');
+        }
+
+        // Mark product as bought
+        async function markAsBought(id, btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>';
+
+            try {
+                const response = await fetch(`/api/wishlist/${id}/bought`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bought: true })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Moved to Bought!', 'success');
+                    // Move row from wishlist to bought
+                    const row = document.getElementById('row-' + id);
+                    document.getElementById('wishlistBody').removeChild(row);
+                    addRowToBought(data.item);
+
+                    // Update empty states
+                    updateEmptyStates();
+                } else {
+                    showToast(data.error || 'Failed to update', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Buy';
+                }
+            } catch (e) {
+                showToast('Network error', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Buy';
+            }
+        }
+
+        // Mark product as unbought (move back to wishlist)
+        async function markAsUnbought(id, btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>';
+
+            try {
+                const response = await fetch(`/api/wishlist/${id}/bought`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bought: false })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Moved to Wishlist!', 'success');
+                    // Move row from bought to wishlist
+                    const row = document.getElementById('row-' + id);
+                    document.getElementById('boughtBody').removeChild(row);
+                    addRowToWishlist(data.item);
+
+                    // Update empty states
+                    updateEmptyStates();
+                } else {
+                    showToast(data.error || 'Failed to update', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Move to Wishlist';
+                }
+            } catch (e) {
+                showToast('Network error', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Move to Wishlist';
+            }
+        }
+
+        // Add row to wishlist table
+        function addRowToWishlist(item) {
+            const tbody = document.getElementById('wishlistBody');
+            const row = document.createElement('tr');
+            row.id = 'row-' + item.id;
+            if (item.error) row.className = 'error-row';
+
+            row.innerHTML = `
+                <td>
+                    ${item.image ? `<img src="${item.image}" alt="${item.name}" class="product-image">` : '<div style="width:60px;height:60px;background:#eee;border-radius:8px;"></div>'}
+                </td>
+                <td>
+                    <a href="${item.url}" target="_blank" class="product-link">${item.name}</a>
+                    ${item.error ? `<div class="error-text">Error: ${item.error}</div>` : ''}
+                </td>
+                <td class="brand">${item.brand}</td>
+                <td class="price">${item.price}</td>
+                <td>
+                    <input type="text"
+                           class="desire-price-input"
+                           value="${item.desire_price || ''}"
+                           placeholder="¥0"
+                           data-id="${item.id}"
+                           onchange="saveDesirePrice('${item.id}', this)">
+                </td>
+                <td>
+                    <button class="action-btn copy-btn" onclick="copyLink('${item.url}', this)">Copy</button>
+                    <button class="action-btn buy-btn" onclick="markAsBought('${item.id}', this)">Buy</button>
+                    <button class="action-btn refetch-btn" onclick="refetchProduct('${item.id}', this)">Refetch</button>
+                    <button class="action-btn delete-btn" onclick="deleteProduct('${item.id}')">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        // Add row to bought table
+        function addRowToBought(item) {
+            const tbody = document.getElementById('boughtBody');
+            const row = document.createElement('tr');
+            row.id = 'row-' + item.id;
+            if (item.error) row.className = 'error-row';
+
+            row.innerHTML = `
+                <td>
+                    ${item.image ? `<img src="${item.image}" alt="${item.name}" class="product-image">` : '<div style="width:60px;height:60px;background:#eee;border-radius:8px;"></div>'}
+                </td>
+                <td>
+                    <a href="${item.url}" target="_blank" class="product-link">${item.name}</a>
+                    ${item.error ? `<div class="error-text">Error: ${item.error}</div>` : ''}
+                </td>
+                <td class="brand">${item.brand}</td>
+                <td class="price">${item.price}</td>
+                <td>
+                    <input type="text"
+                           class="desire-price-input"
+                           value="${item.desire_price || ''}"
+                           placeholder="¥0"
+                           data-id="${item.id}"
+                           onchange="saveDesirePrice('${item.id}', this)">
+                </td>
+                <td>
+                    <button class="action-btn copy-btn" onclick="copyLink('${item.url}', this)">Copy</button>
+                    <button class="action-btn unbuy-btn" onclick="markAsUnbought('${item.id}', this)">Move to Wishlist</button>
+                    <button class="action-btn delete-btn" onclick="deleteProduct('${item.id}')">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        // Update empty state messages
+        function updateEmptyStates() {
+            const wishlistBody = document.getElementById('wishlistBody');
+            const boughtBody = document.getElementById('boughtBody');
+
+            // Remove existing empty state divs
+            const wishlistEmpty = document.getElementById('wishlistEmpty');
+            const boughtEmpty = document.getElementById('boughtEmpty');
+            if (wishlistEmpty) wishlistEmpty.remove();
+            if (boughtEmpty) boughtEmpty.remove();
+
+            // Add empty state if needed for wishlist
+            if (wishlistBody.children.length === 0) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'empty-state';
+                emptyDiv.id = 'wishlistEmpty';
+                emptyDiv.textContent = 'No products in wishlist. Add one above!';
+                document.getElementById('wishlist-tab').appendChild(emptyDiv);
+            }
+
+            // Add empty state if needed for bought
+            if (boughtBody.children.length === 0) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'empty-state';
+                emptyDiv.id = 'boughtEmpty';
+                emptyDiv.textContent = 'No bought products yet!';
+                document.getElementById('bought-tab').appendChild(emptyDiv);
+            }
+        }
+    </script>
+</body>
+</html>
